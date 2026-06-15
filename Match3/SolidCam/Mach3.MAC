@@ -1,0 +1,149 @@
+;This mac file is no longer used in SolidCAM 2011 and has been replaced by 2 files:
+;*.prp (preprocessor) and *.vmid (machine ID).
+;This mac file was converted on Sat Jun 16 19:03:10 2012
+
+@pre_processor
+    ;Internal parms
+    machine_type          = MILLING
+    post_processor        = Mach3
+
+    ;Machine Initialize
+    machine_plane         = XY
+    z_with_xy             = Y
+    mac_axes              = XYZ
+    num_axes              = 3
+    num_simult_axes       = 3
+    abs_coord             = Y
+    rotate                = N
+    mirror                = N
+    variables             = N
+    loops                 = N
+
+    ;Program numbers
+    prog_num_min          = 1
+    prog_num_max          = 99999999
+    prog_num_dflt         = 1
+    get_prog_num          = Y
+    proc_num_min          = 1
+    proc_num_max          = 99999999
+    proc_num_dflt         = 1
+    get_proc_num          = Y
+
+    ;Procedures control
+    full_gcode            = N
+    gen_procs             = N
+    drill_proc            = N
+    turn_proc             = N
+    thread_proc           = N
+    gen_internal_proc     = N
+    turn_common_proc      = N
+    gen_1_line_proc       = N
+    optimize_jobs_loop    = N
+    G_in_2_cols           = N
+
+    ;Home
+    num_homes             = 6
+    dflt_home             = 1
+    get_job_home          = Y
+    abs_zero_chng         = N
+
+    ;Positioning
+    dflt_start            = 0.0000 200.0000 100.0000, 0.0000 7.8740 3.9370
+    dflt_end              = 0.0000 200.0000 0.0000, 0.0000 7.8740 0.0000
+    set_z_chng            = Y
+    dflt_tool_chng        = 0.0000 0.0000 0.0000, 0.0000 0.0000 0.0000
+
+    ;Compensation
+    comp_exist            = Y N
+    comp_arc_arc          = Y
+    comp_arc_line         = Y
+    comp_line_line        = Y
+    next_angle            = N
+    comp_x_start          = N
+    comp_by_arcs          = N
+    chng_tool_table       = N
+    look_forward          = 2
+
+    ;Arc definitions
+    arc_exist             = Y
+    arc_3d                = N
+    arc_quadrants         = N
+    arc_gt_180            = Y
+    arc_max_chord         = 30.0000, 1.1811
+    arc_max_angle         = 10.0000
+    arc_max_radius        = 2000.0000, 78.7402
+
+    ;Epsilon values
+    eps_angle             = 0.0020, 0.0001
+    eps_line              = 0.0010, 0.0000
+    zero_value            = 0.0010, 0.0000
+    min_delt_arc_rad      = 0.0100, 0.0004
+    safety_dist           = 2.0000, 0.0787
+
+    ;Feed-Spin
+    rapid_feed            = 40000.0000, 15748.0312
+    max_spin              = 42000.0000
+    max_feed              = 20000.0000, 7874.0156
+    spin_direction        = CW
+
+    ;Timing
+    time_factor           = 1.0000
+    block_time            = 0.0000
+    change_tool_time      = 0.0000
+
+    ;Part options
+    options               = ONLY_XYZ LOGICAL
+    options               = TEXT LOGICAL
+    ;Job options
+
+    ;Drill cycles
+    drill_type            = G81 Drilling Y 
+    drill_type            = G82 F_Drill Y  Verweilzeit
+    drill_type            = G83 Peck Y Verweilzeit
+    drill_type            = G84 Tapping Y Steigung
+    drill_type            = G85 Peck Y 
+    drill_type            = G86 Boring Y 
+    drill_type            = G89 None Y 
+    ;Turning cycles
+
+    ;Threading cycles
+
+    ;Grooving cycles
+
+    ;Wire Cut cycles
+
+    ;Turning definitions
+    turning_cycle         = Y N
+    groove_cycle          = Y N
+    combined_cycles       = N
+    optimize_cycle        = N
+    finish_retreat        = N
+    semi_finish_retreat   = N
+    fanuc_cycle           = Y
+
+    ;Fourth axis
+    indexial_4th_axis     = N
+    indexial_increment    = 0.0000, 0.0000
+    init_cpos             = N
+    polar_4x              = N
+    cartez_4x             = N
+    set_dir               = N
+    fourth_axis_letter    = C
+
+    ;Wire Cut parameters
+    lower_guide_level     = 0.0000, 0.0000
+    group_def             = N
+    offset_group_name     = 
+    wc_pos_proc           = Y
+    u_max                 = 100.0000, 3.9370
+    v_max                 = 100.0000, 3.9370
+    xy_abs                = Y
+    uv_abs                = N
+    agie                  = N
+
+    ;GCTOOL
+    int_is_illegal        = N
+    devision_factor       = 1000.0000
+    gc_procs_file_name    = NO_FILE
+    change_tool_at_ref    = Y
+endp
