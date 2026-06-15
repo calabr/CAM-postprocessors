@@ -1,0 +1,400 @@
+
+; GRBL.gpp
+; Postprocesseur GRBL
+; For SOLIDCAM 2020
+; 
+; Special Porperties : Part Options:
+;                      1: ONLY_XYZ gives only the koordinates as full_gcode
+;                      2: TEXT is printing all text it's poisible
+;                proc: If blknum > blk_num_max:   blk_num will be reset
+;
+
+
+@init_post
+    global string tool_diameter_f
+    global logical first_rapid_move
+    ; Non GPPL variables
+    num_user_procs =    1
+    line_labels    = FALSE    ; Jump to N...
+;	print_gcode		= false
+;	print_verbose	= false
+    ; GPPL variables
+    pre_processor   = 'GRBL'
+	gcode_space 	= FALSE
+;	remove_blanks	= false
+    numeric_def_f   = '5.3(p)'
+    integer_def_f   = '5.0(p)'
+    gcode_f         = '2.0(p)'
+    mcode_f         = '2.0(p)'
+    xpos_f          = '5.3(p)'
+    ypos_f          = '5.3(p)'
+    zpos_f          = '5.3(p)'
+    feed_f          = '5.1(p)'
+    tool_diameter_f = '5.3(p)'
+    blknum_f        = '5.0(p)'
+    blknum_gen      = false
+    blknum_exist    = true
+    blknum_letter   = 'N'
+    end_block_text  = ''
+    blknum          =    5
+    blknum_delta    =    5
+    blknum_max      = 999995
+
+;  trace "all":1
+;  trace "@call_proc":5
+endp
+
+;-------------------
+
+@start_of_file
+   
+    {'(', part_name,')\n'}
+	{nb}
+;    if rotate_used then
+;        gcode = 69
+;        {'G'gcode}
+;    endif
+;	if inch_system then
+;		{'G20'}
+;	else
+;		{'G21'}
+;	endif
+;	{'G90G40'}
+;	{nb,'G0Z'clearance_plane}
+;	{nb,'G0Z'tool_start_plane}
+endp
+
+;-------------------
+
+@start_program 
+	if rotate_used then
+        gcode = 69
+        {'G'gcode}
+    endif
+	{'G90G94'}
+	if inch_system then
+		{'G20'}
+	else
+		{'G21'}
+	endif
+	{nb,'G40G0'}
+  ;	{nb,'G0Z'tool_start_plane}
+endp
+
+;-------------------
+
+@end_program
+
+	{nb,'G0Z'tool_start_plane}
+	{nb, 'M5 M9'}
+;	{nb,'G0','X'xpos,'Y'ypos}
+	{nb,'M2'}
+endp
+
+;-------------------
+
+@end_of_file
+    ;
+endp
+;-------------------
+
+@start_of_job
+	
+	{nl,'\n( ', job_name,' Type: ',job_type,')'}
+	{nl,'( Geometry: ',geom_name,')'}
+	{nb,'G0Z'tool_start_plane}
+	call @start_tool
+;	{nb,'G0X'insertion_point_x, 'Y'insertion_point_y}
+	
+;    {nb,'(',job_name,')'}
+    if msg ne ''
+        {nb,'('msg,')'}
+    endif
+endp
+
+;-------------------
+
+@relative_mode
+    gcode = 91
+    {nb, 'G'gcode, ' '}
+    skipline = FALSE
+endp
+
+;-------------------
+
+@absolute_mode
+    gcode = 90
+    {nb, 'G'gcode, ' '}
+    skipline = FALSE
+endp
+
+;-------------------
+
+@machine_plane
+    if machine_plane eq XY
+        gcode = 17
+    endif
+    if machine_plane eq YZ
+        gcode = 18
+    endif
+    if machine_plane eq ZX
+        gcode = 19
+    endif
+    {nb, 'G'gcode}
+endp
+;----------------------
+
+@feed_spin
+    if feed_unit eq MM_MIN then
+        gcode = 94
+    else
+        gcode = 95
+    endif
+    {nb, 'G' gcode, [' S'spin ] }
+endp
+
+;-------------------
+
+@rapid_move
+    gcode = 0
+	{nb}
+    if print_gcode eq true
+		{'G'gcode}
+	else
+		{['G'gcode]}
+	endif
+		{['X'xpos], ['Y'ypos], ['Z'zpos]}
+endp
+
+;-------------------
+
+@line
+    gcode = 1
+	{nb}
+    if print_gcode eq true
+		{'G'gcode}
+	else
+		{['G'gcode]}
+	endif
+		{['X'xpos], ['Y'ypos], ['Z'zpos], ['F'feed]}
+endp
+
+
+;-------------------
+
+@arc
+    if arc_direction eq CCW then
+        gcode = 3
+        else ; CW
+        gcode = 2
+    endif
+    {nb, ['G'gcode], ['X'xpos], ['Y'ypos], ['Z'zpos]}
+	if arc_plane eq XY then
+            {' I'xcenter_rel, ' J'ycenter_rel}
+    elseif arc_plane eq YZ then
+            {' J'xcenter_rel, ' K'ycenter_rel}
+    elseif arc_plane eq ZX then
+            {' K'xcenter_rel, ' I'ycenter_rel}
+    endif
+    {[' F'feed]}
+endp
+
+;-------------------
+
+@compensation
+    if side eq COMP_LEFT then
+        gcode = 41
+    endif
+    if side eq COMP_RIGHT then
+        gcode = 42
+    endif
+    if side eq COMP_OFF then
+        gcode = 40
+    endif
+   {nb,'G'gcode,' '}
+    if side ne COMP_OFF
+       {'D'(offset_number), ' '}
+    endif
+    skipline = FALSE
+endp
+
+;-------------------
+
+@delay
+    gcode = 4
+    {nb,'G'gcode, ' P'delay_period:integer_def_f}
+endp
+
+;-------------------
+
+@change_ref_point
+    ; Given in absolute mode
+    gcode = 10
+    {nb,'G91 G'gcode, 'L2 P'home_number ' X'xhome, ' Y'yhome, ' Z'zhome}
+    {nb,'G90'}
+endp
+
+;-------------------
+
+@home_number
+    gcode = 53 + home_number
+    {nb,'G'gcode}
+endp
+
+;-------------------
+
+@fourth_axis
+    gcode = 0
+    {nb,'G'gcode, ' A'angle}
+endp
+
+;-------------------
+
+@change_tool
+    local logical save_blknum_gen
+    if machine_plane eq XY
+         gcode = 17
+    endif
+    if machine_plane eq ZX
+         gcode = 18
+    endif
+     
+    {nb,'(Tool N:'tool_number,' Diameter: 'tool_diameter, ' Type: ' tool_user_type,')'}    
+  
+;    mcode = 6
+;    {nb,'T'tool_number,' M' mcode' D'tool_number ' H'tool_number}
+   ;  call @start_tool
+  ;  call @home_number
+endp
+
+;-------------------
+
+@message
+  ; {nb,'(', message, ')'}
+endp
+
+;-------------------
+
+@drill
+
+    call @rapid_move
+
+;   gcode = 98
+
+;   {nb,'G'gcode, ' '}
+    {nb}
+    if drill_type eq G81 then
+        gcode = 81
+    endif
+    if drill_type eq G82 then
+        gcode = 82
+    endif
+    if drill_type eq G83 then
+        gcode = 83
+    endif
+    if drill_type eq G84 then
+        gcode = 84
+    endif
+    if drill_type eq G85 then
+        gcode = 85
+    endif
+    if drill_type eq G86 then
+        gcode = 86
+    endif
+    if drill_type eq G89 then
+        gcode = 89
+    endif
+    {'G'gcode, ' Z'drill_lower_z, ' R'drill_upper_z}
+    if drill_type eq G83 then
+        {' Q'down_step}
+        {' P'verweilzeit:'7.0(*1000P)'}
+    endif
+    if drill_type eq G82 then
+        {' P'verweilzeit:'7.0(*1000P)'}
+    endif
+    if drill_type eq G84 then
+        feed = spin * steigung
+    endif
+;   {' F'feed ' L0'}
+    {' F'feed}
+
+endp
+
+;-------------------
+
+@drill_point
+   if not first_drill
+        {nb,'   ', [' X'xpos], [' Y'ypos], [' Z'zpos]}
+  endif
+endp
+
+
+;-------------------
+
+@end_drill
+    gcode = 80
+    {nb,'G'gcode}
+endp
+
+;-------------------
+
+@halt_program
+    {nb,'M0'}
+endp
+
+;--------------------
+
+@round_comp
+    ; NOP
+endp
+
+
+;     =======================
+;     USER DEFINED PROCEDURES
+;     =======================
+;-------------------
+
+@call_proc
+    if active(parm1) then
+        gcode = 65
+        {nb, 'G'gcode, ' P'label}
+        {' A'parm1, [' B'parm2], [' C'parm3]}
+    else
+        {nb, 'M98 P'label}
+    endif
+    if proc_count gt 1 then
+        {' L'proc_count}
+    endif
+    {[' ('message, ')']}
+endp
+
+@call_simple_proc
+    active(message) = FALSE
+    active(parm1)   = FALSE
+    active(parm2)   = FALSE
+    active(parm3)   = FALSE
+    proc_count      = 1
+    call @call_proc
+endp
+
+;-------------------
+
+@start_tool
+    if tool_direction eq CW then
+        mcode = 3
+    else              ;  CCW
+        mcode = 4
+    endif
+
+    {nb,'S'spin:integer_def_f, 'M'mcode,'G4P1'}
+endp
+
+;-------------------
+
+@stop_tool
+    {'M5'}
+endp
+
+
+
+
